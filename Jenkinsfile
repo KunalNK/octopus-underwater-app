@@ -1,40 +1,26 @@
 pipeline {
-    agent any
-    options {
-        skipStagesAfterUnstable()
+  environment {
+    registry = '502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd'
+    registryCredential = 'aws-credentials'
+    dockerImage = ''
+  }
+  agent any
+  stages {
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
     }
-    stages {
-         stage('Clone repository') { 
-            steps { 
-                script{
-                checkout scm
-                }
-            }
-        }
-
-        stage('ECR login') { 
-            steps { 
-                script{
-                sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 502629635618.dkr.ecr.ap-south-1.amazonaws.com'
-            }
-        }
-        }
-
-        stage('Build') { 
-            steps { 
-                sh 'docker build -t jenkins-cicd .'
-            }
-        }
-        stage('Test'){
-            steps {
-                 echo 'Empty'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh 'docker tag jenkins-cicd:latest 502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd:latest'
-                sh 'docker push 502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd:latest'
+    stage('Deploy image') {
+        steps{
+            script{
+                docker.withRegistry("https://" + registry, "ecr:ap-south-1:" + registryCredential) {
+                    dockerImage.push()
                 }
             }
         }
     }
+  }
+}
