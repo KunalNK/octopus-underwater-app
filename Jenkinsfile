@@ -1,21 +1,25 @@
 pipeline {
-  agent none
-
+  environment {
+    registry = '502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd'
+    registryCredential = 'aws-credentials'
+    dockerImage = ''
+  }
+  agent any
   stages {
-    stage('Test') {
-        agent {
-            ecs {
-                inheritFrom 'label-of-my-preconfigured-template'
-                cpu 2048
-                memory 4096
-                image '$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/jenkins/java8:2019.7.29-1'
-                logDriver 'fluentd'
-                logDriverOptions([[name: 'foo', value:'bar'], [name: 'bar', value: 'foo']])
-                portMappings([[containerPort: 22, hostPort: 22, protocol: 'tcp'], [containerPort: 443, hostPort: 443, protocol: 'tcp']])
-            }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
         }
-        steps {
-            sh 'echo hello'
+      }
+    }
+    stage('Deploy image') {
+        steps{
+            script{
+                docker.withRegistry("https://" + registry, "ecr:ap-south-1:" + registryCredential) {
+                    dockerImage.push()
+                }
+            }
         }
     }
   }
