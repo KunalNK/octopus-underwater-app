@@ -12,11 +12,15 @@ pipeline {
             }
         }
 
+        stage('ECR login') { 
+            steps { 
+                sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 502629635618.dkr.ecr.ap-south-1.amazonaws.com'
+            }
+        }
+
         stage('Build') { 
             steps { 
-                script{
-                 app = docker.build("underwater")
-                }
+                sh 'docker build -t jenkins-cicd .'
             }
         }
         stage('Test'){
@@ -26,11 +30,8 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                script{
-                        docker.withRegistry('https://502629635618.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:aws-credentials') {
-                    app.push("${env.BUILD_NUMBER}")
-                    app.push("latest")
-                    }
+                sh 'docker tag jenkins-cicd:latest 502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd:latest'
+                sh 'docker push 502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd:latest'
                 }
             }
         }
