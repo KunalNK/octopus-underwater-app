@@ -6,14 +6,14 @@ pipeline {
   }
   agent any
   stages {
-    stage('Building image') {
+    stage('Build docker image') {
       steps{
         script {
           dockerImage = docker.build registry + ":$BUILD_NUMBER"
         }
       }
     }
-    stage('Deploy image') {
+    stage('Push image to ECR') {
         steps{
             script{
                 docker.withRegistry("https://" + registry, "ecr:ap-south-1:" + registryCredential) {
