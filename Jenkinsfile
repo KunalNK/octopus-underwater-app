@@ -12,11 +12,13 @@ pipeline {
             }
         }
 
-        // stage('ECR login') { 
-        //     steps { 
-        //         sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 502629635618.dkr.ecr.ap-south-1.amazonaws.com'
-        //     }
-        // }
+        stage('ECR login') { 
+            steps { 
+                script{
+                sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 502629635618.dkr.ecr.ap-south-1.amazonaws.com'
+            }
+        }
+        }
 
         stage('Build') { 
             steps { 
