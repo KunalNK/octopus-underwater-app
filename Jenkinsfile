@@ -28,7 +28,6 @@ pipeline {
             steps {
                 script{
                         docker.withRegistry('https://502629635618.dkr.ecr.ap-south-1.amazonaws.com/jenkins-cicd', 'ecr:ap-south-1:aws-credentials') {
-                    app.push("${env.BUILD_NUMBER}")
                     app.push("latest")
                     }
                 }
